@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bielski's Workspace (Login)</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #eee;
+    }
+    input, button {
+      margin: 6px 0;
+    }
+    .error { color: #ff5555; }
+    .success { color: #55ff55; }
+
+    table {
+      margin-top: 15px;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 6px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Login</h2>
+
+<form id="loginForm">
+  <div>
+    Username:<br>
+    <input type="text" id="username" required>
+  </div>
+  <div>
+    Password:<br>
+    <input type="password" id="password" required>
+  </div>
+  <button type="submit">Login</button>
+</form>
+
+<p id="message"></p>
+
+<h3>Trace</h3>
+<table>
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Password</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody id="log"></tbody>
+</table>
+
+<script>
+  // ===== GAME CONFIG =====
+  const CORRECT_USER = "admin";
+
+  function generatePassword(length = 8) {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let pwd = "";
+    for (let i = 0; i < length; i++) {
+      pwd += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return pwd;
+  }
+  const CORRECT_PASS = generatePassword();
+  const form = document.getElementById("loginForm");
+  const message = document.getElementById("message");
+  const logTable = document.getElementById("log");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+
+    let result;
+
+    if (user !== CORRECT_USER) {
+      result = "Wrong username";
+      message.className = "error";
+    } else if (pass !== CORRECT_PASS) {
+      result = "Wrong password";
+      message.className = "error";
+    } else {
+      result = "Login successful (go to session)";
+      message.className = "success";
+    }
+
+    message.textContent = result;
+
+    // Log every attempt
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${user}</td>
+      <td>${pass}</td>
+      <td>${result}</td>
+    `;
+    logTable.appendChild(row);
+
+    form.reset();
+  });
+</script>
+</body>
+</html>
