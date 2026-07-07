@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_note": "ADE workshop Phase 0 — linked child. Creates a deceptively named custom role whose Actions are fully visible, then assigns it. Deploying this emits authentic Microsoft.Authorization/roleDefinitions/write + roleAssignments/write in AzureActivity — the telemetry Phase 0's blind-spot hunt is built on."
+  },
+  "parameters": {
+    "principalId": { "type": "string" },
+    "principalType": {
+      "type": "string",
+      "defaultValue": "ServicePrincipal",
+      "allowedValues": [ "ServicePrincipal", "User", "Group" ]
+    },
+    "roleAssignmentGuid": { "type": "string" }
+  },
+  "variables": {
+    "roleName": "read_insights",
+    "roleDefinitionId": "[guid(subscription().id, variables('roleName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2022-04-01",
+      "name": "[variables('roleDefinitionId')]",
+      "properties": {
+        "roleName": "read_insights",
+        "description": "ADE lab artifact. Deceptive name (reads as read-only) but carries User Access Administrator + Contributor-equivalent rights. Lab use only.",
+        "type": "CustomRole",
+        "permissions": [
+          {
+            "actions": [
+              "Microsoft.Authorization/roleAssignments/write",
+              "Microsoft.Authorization/roleAssignments/delete",
+              "Microsoft.Authorization/roleDefinitions/write",
+              "Microsoft.Authorization/roleDefinitions/delete",
+              "Microsoft.Compute/*",
+              "Microsoft.Storage/*",
+              "Microsoft.Network/*",
+              "Microsoft.Resources/*",
+              "Microsoft.KeyVault/*",
+              "*/read"
+            ],
+            "notActions": [],
+            "dataActions": [],
+            "notDataActions": []
+          }
+        ],
+        "assignableScopes": [ "[subscription().id]" ]
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[parameters('roleAssignmentGuid')]",
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]",
+        "principalId": "[parameters('principalId')]",
+        "principalType": "[parameters('principalType')]"
+      }
+    }
+  ],
+  "outputs": {
+    "roleName": {
+      "type": "string",
+      "value": "[variables('roleName')]"
+    },
+    "roleDefinitionResourceId": {
+      "type": "string",
+      "value": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', variables('roleDefinitionId'))]"
+    },
+    "roleAssignmentName": {
+      "type": "string",
+      "value": "[parameters('roleAssignmentGuid')]"
+    }
+  }
+}
